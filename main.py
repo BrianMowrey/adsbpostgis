@@ -10,29 +10,42 @@ from model import aircraft_report
 from model import report_receiver
 from utils import postgres as pg_utils
 
-
-with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.yml'), 'r') as yaml_config_file:
-    config = yaml.load(yaml_config_file)
+# set some defaults
+config = {
+    'feed1': {'url': ''},
+    'receiver1': {'lat83': '', 'long83': ''},
+    'feed2': {'url': ''},
+    'receiver2': {'lat83': '', 'long83': ''}, 
+    'database': {'hostname': '', 'port': 5432, 'dbname': '', 'user': '', 'pwd': ''},
+    'waittimesec': 5,
+    'samplescutoff': 100000000,
+    'itinerarymaxtimediffseconds': 900,
+}
+   
+config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.yml')
+if os.path.exists(config_path): 
+    with open(config_path) as yaml_config_file:
+        config = yaml.load(yaml_config_file)
 
 # log_formatter = logging.Formatter("%(levelname)s: %(asctime)s - %(name)s - %(process)s - %(message)s")
 FORMAT = '%(asctime)-15s %(levelname)s: %(message)s'
 logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger(__name__)
 
-# config vars
-aircraft_data_url1 = config['feed1']['url']
-receiver1_lat83 = config['receiver1']['lat83']
-receiver1_long83 = config['receiver1']['long83']
+# config vars, let environment variables overrule even if there is a config file
+aircraft_data_url1 = os.environ.get('FEED1_URL', config['feed1']['url'])
+receiver1_lat83 = os.environ.get('RECEIVER1_LAT', config['receiver1']['lat83'])
+receiver1_long83 = os.environ.get('RECEIVER1_LONG', config['receiver1']['long83'])
 
-aircraft_data_url2 = config['feed2']['url']
-receiver2_lat83 = config['receiver2']['lat83']
-receiver2_long83 = config['receiver2']['long83']
+aircraft_data_url2 = os.environ.get('FEED2_URL', config['feed2']['url'])
+receiver2_lat83 = os.environ.get('RECEIVER2_LAT', config['receiver2']['lat83'])
+receiver2_long83 = os.environ.get('RECEIVER2_LONG', config['receiver2']['long83'])
 
-db_hostname = config['database']['hostname']
-db_port = config['database']['port']
-db_name = config['database']['dbname']
-db_user = config['database']['user']
-db_pwd = config['database']['pwd']
+db_hostname = os.environ.get('DB_HOST', config['database']['hostname'])
+db_port = os.environ.get('DB_PORT', config['database']['port'])
+db_name = os.environ.get('DB_NAME', config['database']['dbname'])
+db_user = os.environ.get('DB_USER', config['database']['user'])
+db_pwd = os.environ.get('DB_PASSWD', config['database']['pwd'])
 
 sleep_time_sec = config['waittimesec']
 
